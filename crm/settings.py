@@ -38,8 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',
     'users',
+    'rest_framework',
     'rest_framework.authtoken',
     "corsheaders",
     'rest_framework_simplejwt',
@@ -55,7 +55,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
-    'users.middlewares.RequestLogMiddleware',
+    # 'users.middlewares.RequestLogMiddleware',
 ]
 
 ROOT_URLCONF = 'crm.urls'
@@ -92,6 +92,8 @@ DATABASES = {
         }
     }
 }
+
+AUTH_USER_MODEL = 'users.User'
 
 
 # Password validation
