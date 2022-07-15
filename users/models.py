@@ -30,14 +30,15 @@ class User(AbstractUser):
     email = models.EmailField(unique=True, null=True)
     mobile = models.CharField(unique=True, null=True, max_length=10)
     birth_date = models.DateField(null=True)
-    city = models.ForeignKey(City, models.CASCADE, related_name='users')
+    city = models.ForeignKey(City, models.CASCADE,
+                             related_name='users', null=True)
     national_code = models.CharField(max_length=10, null=True)
     description = models.TextField(max_length=1000, null=True)
     gender = models.CharField(choices=Gender.choices,
                               default=Gender.NOTHING, max_length=10)
     credit = models.BigIntegerField(default=0)
     point = models.IntegerField(default=0)
-    company_name = models.CharField(max_length=60)
+    company_name = models.CharField(max_length=60, null=True)
     remained_sms = models.IntegerField(default=0)
     date_modified = models.DateTimeField(auto_now=True)
     REQUIRED_FIELDS = ['is_staff', 'is_active', 'date_joined']
