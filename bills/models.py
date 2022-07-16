@@ -8,7 +8,7 @@ from django.core.validators import MaxValueValidator
 class Category(models.Model):
     name = models.CharField(max_length=50)
     user = models.ForeignKey(
-        'users.User', models.CASCADE, related_name='categories')
+        'users.User', models.CASCADE, related_name='categories', null=True)
     parent = models.ForeignKey(
         'self', models.CASCADE, related_name='child')
     date_created = models.DateTimeField(auto_now_add=True)
