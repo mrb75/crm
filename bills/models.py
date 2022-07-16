@@ -30,6 +30,7 @@ class Product(models.Model):
     name = models.CharField(max_length=50)
     user = models.ForeignKey(
         'users.User', models.CASCADE, related_name='products')
+    products = models.ManyToManyField('Bill', through='BillProduct')
     inventory = models.IntegerField(default=0)
     discount = models.PositiveIntegerField(validators=[MaxValueValidator(100)])
     warranty = models.IntegerField(default=0)
@@ -83,7 +84,7 @@ class Bill(models.Model):
 
 
 class BillProduct(models.Model):
-    user = models.ForeignKey(
+    customer = models.ForeignKey(
         'users.User', models.CASCADE, related_name='sells')
     bill = models.ForeignKey('Bill', models.CASCADE, related_name='sells')
     product = models.ForeignKey(
