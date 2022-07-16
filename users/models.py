@@ -131,3 +131,38 @@ class UserQueue(models.Model):
     @property
     def visit_date_time(self):
         return datetime.datetime.strftime(self.date_visit, '%Y/%m/%d %H:%M'), _(jdatetime.datetime.fromgregorian(date=self.date_visit).strftime('%Y/%m/%d %H:%M'))
+
+
+class Ticket(models.Model):
+    class Type(models.TextChoices):
+        MANAGEMENT = 'Management', _('مدیریت')
+        MARKETING = 'Marketing', _('فروش و بازاریابی')
+        SUPPORT = 'Support', _('پشتیبانی')
+        COMPLAINS = 'Complains', _('شکایات')
+        SUGGESTION = 'Suggestions', _('انتقادات و پیشنهادات')
+
+    class State(models.TextChoices):
+        CLOSED = 'Closed', _('بسته شده')
+        OPEN = 'Pending', _('در حال بررسی')
+        INIT = 'Waiting', _('در انتظار بررسی')
+
+    message_type = models.CharField(
+        choices=Type.choices, default=Type.SUGGESTION, max_length=30)
+    subject = models.CharField(max_length=255)
+    user = models.ForeignKey(User, models.CASCADE)
+    status = models.CharField(
+        choices=State.choices, default=State.INIT, max_length=30)
+    text = models.TextField(max_length=20000)
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['date_created']
+
+    @property
+    def create_date_time(self):
+        return datetime.datetime.strftime(self.date_created, '%Y/%m/%d %H:%M'), _(jdatetime.datetime.fromgregorian(date=self.date_created).strftime('%Y/%m/%d %H:%M'))
+
+    @property
+    def modify_date_time(self):
+        return datetime.datetime.strftime(self.date_modified, '%Y/%m/%d %H:%M'), _(jdatetime.datetime.fromgregorian(date=self.date_modified).strftime('%Y/%m/%d %H:%M'))
