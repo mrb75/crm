@@ -8,9 +8,9 @@ from django.core.validators import MaxValueValidator
 class Category(models.Model):
     name = models.CharField(max_length=50)
     user = models.ForeignKey(
-        'users.User', models.CASCADE, related_name='categories', null=True)
+        'users.User', models.CASCADE, related_name='categories', null=True, blank=True)
     parent = models.ForeignKey(
-        'self', models.CASCADE, related_name='child')
+        'self', models.CASCADE, related_name='child', null=True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
 
@@ -56,8 +56,8 @@ class Bill(models.Model):
     user = models.ForeignKey(
         'users.User', models.CASCADE, related_name='personal_bills')
     cash_payment = models.BigIntegerField(default=0)
-    description = models.TextField(max_length=1000, null=True)
-    delivery_date = models.DateTimeField(null=True)
+    description = models.TextField(max_length=1000, null=True, blank=True)
+    delivery_date = models.DateTimeField(null=True, blank=True)
     debt = models.PositiveBigIntegerField(default=0)
     used_credit = models.PositiveBigIntegerField(default=0)
     code = models.CharField(max_length=100)

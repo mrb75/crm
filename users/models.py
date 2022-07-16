@@ -27,18 +27,19 @@ class User(AbstractUser):
         MALE = 'Male', _('مرد')
         FEMALE = 'Female', _('زن')
         NOTHING = 'Nothing', _('هیچکدام')
-    email = models.EmailField(unique=True, null=True)
-    mobile = models.CharField(unique=True, null=True, max_length=10)
-    birth_date = models.DateField(null=True)
+    email = models.EmailField(unique=True, null=True, blank=True)
+    mobile = models.CharField(unique=True, null=True,
+                              blank=True, max_length=10)
+    birth_date = models.DateField(null=True, blank=True)
     city = models.ForeignKey(City, models.CASCADE,
-                             related_name='users', null=True)
-    national_code = models.CharField(max_length=10, null=True)
-    description = models.TextField(max_length=1000, null=True)
+                             related_name='users', null=True, blank=True)
+    national_code = models.CharField(max_length=10, null=True, blank=True)
+    description = models.TextField(max_length=1000, null=True, blank=True)
     gender = models.CharField(choices=Gender.choices,
                               default=Gender.NOTHING, max_length=10)
     credit = models.BigIntegerField(default=0)
     point = models.IntegerField(default=0)
-    company_name = models.CharField(max_length=60, null=True)
+    company_name = models.CharField(max_length=60, null=True, blank=True)
     remained_sms = models.IntegerField(default=0)
     date_modified = models.DateTimeField(auto_now=True)
 
