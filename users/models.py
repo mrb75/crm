@@ -105,3 +105,29 @@ class NotificationType(models.Model):
     @property
     def create_date_time(self):
         return datetime.datetime.strftime(self.date_created, '%Y/%m/%d %H:%M'), _(jdatetime.datetime.fromgregorian(date=self.date_created).strftime('%Y/%m/%d %H:%M'))
+
+
+class UserQueue(models.Model):
+    coworker = models.ForeignKey(
+        User, models.CASCADE, related_name='userQueues')
+    product = models.ForeignKey(
+        'bills.Product', models.CASCADE, related_name='userQueues')
+    date_visit = models.DateTimeField()
+    description = models.TextField(max_length=2000, null=True, blank=True)
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['date_created']
+
+    @property
+    def create_date_time(self):
+        return datetime.datetime.strftime(self.date_created, '%Y/%m/%d %H:%M'), _(jdatetime.datetime.fromgregorian(date=self.date_created).strftime('%Y/%m/%d %H:%M'))
+
+    @property
+    def modify_date_time(self):
+        return datetime.datetime.strftime(self.date_modified, '%Y/%m/%d %H:%M'), _(jdatetime.datetime.fromgregorian(date=self.date_modified).strftime('%Y/%m/%d %H:%M'))
+
+    @property
+    def visit_date_time(self):
+        return datetime.datetime.strftime(self.date_visit, '%Y/%m/%d %H:%M'), _(jdatetime.datetime.fromgregorian(date=self.date_visit).strftime('%Y/%m/%d %H:%M'))
