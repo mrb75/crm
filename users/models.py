@@ -166,3 +166,21 @@ class Ticket(models.Model):
     @property
     def modify_date_time(self):
         return datetime.datetime.strftime(self.date_modified, '%Y/%m/%d %H:%M'), _(jdatetime.datetime.fromgregorian(date=self.date_modified).strftime('%Y/%m/%d %H:%M'))
+
+
+class RequestLog(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='requestLogs', null=True)
+    ip_address = models.GenericIPAddressField()
+    referer = models.CharField(max_length=255, null=True)
+    user_agent = models.CharField(max_length=100, null=True)
+    url = models.CharField(max_length=100, null=True)
+    method = models.CharField(max_length=10)
+    date_created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['date_created']
+
+    @property
+    def create_date_time(self):
+        return datetime.datetime.strftime(self.date_created, '%Y/%m/%d %H:%M'), _(jdatetime.datetime.fromgregorian(date=self.date_created).strftime('%Y/%m/%d %H:%M'))

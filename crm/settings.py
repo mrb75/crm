@@ -56,7 +56,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
-    # 'users.middlewares.RequestLogMiddleware',
+    'users.middlewares.RequestLogMiddleware',
 ]
 
 ROOT_URLCONF = 'crm.urls'
