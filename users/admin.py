@@ -1,6 +1,18 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, NotificationType, Notification, RequestLog
+from .models import User, NotificationType, Notification, RequestLog, Country, Province, City
+
+
+class CountryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'phone_code')
+
+
+class ProvinceAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+
+
+class CityAdmin(admin.ModelAdmin):
+    list_display = ('name',)
 
 
 class NotificationAdmin(admin.ModelAdmin):
@@ -17,6 +29,9 @@ class RequestLogAdmin(admin.ModelAdmin):
                     'referer', 'url', 'method')
 
 
+admin.site.register(Country, CountryAdmin)
+admin.site.register(Province, ProvinceAdmin)
+admin.site.register(City, CityAdmin)
 admin.site.register(RequestLog, RequestLogAdmin)
 admin.site.register(Notification, NotificationAdmin)
 admin.site.register(NotificationType, NotificationTypeAdmin)
