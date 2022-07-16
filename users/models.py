@@ -41,7 +41,6 @@ class User(AbstractUser):
     company_name = models.CharField(max_length=60, null=True)
     remained_sms = models.IntegerField(default=0)
     date_modified = models.DateTimeField(auto_now=True)
-    REQUIRED_FIELDS = ['is_staff', 'is_active', 'date_joined']
 
     class Meta:
         ordering = ['date_joined']
