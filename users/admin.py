@@ -8,11 +8,11 @@ class CountryAdmin(admin.ModelAdmin):
 
 
 class ProvinceAdmin(admin.ModelAdmin):
-    list_display = ('name',)
+    list_display = ('name', 'country')
 
 
 class CityAdmin(admin.ModelAdmin):
-    list_display = ('name',)
+    list_display = ('name', 'province_id')
 
 
 class NotificationAdmin(admin.ModelAdmin):
