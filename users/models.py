@@ -71,3 +71,37 @@ class UserImage(models.Model):
     @property
     def modify_date_time(self):
         return datetime.datetime.strftime(self.date_modified, '%Y/%m/%d %H:%M'), _(jdatetime.datetime.fromgregorian(date=self.date_modified).strftime('%Y/%m/%d %H:%M'))
+
+
+class Notification(models.Model):
+    user = models.ForeignKey(User, models.CASCADE,
+                             related_name='notifications')
+    writer = models.ForeignKey(User, models.CASCADE)
+    is_news = models.BooleanField(default=False)
+    text = models.TextField(max_length=1000)
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['date_created']
+
+    @property
+    def create_date_time(self):
+        return datetime.datetime.strftime(self.date_created, '%Y/%m/%d %H:%M'), _(jdatetime.datetime.fromgregorian(date=self.date_created).strftime('%Y/%m/%d %H:%M'))
+
+    @property
+    def modify_date_time(self):
+        return datetime.datetime.strftime(self.date_modified, '%Y/%m/%d %H:%M'), _(jdatetime.datetime.fromgregorian(date=self.date_modified).strftime('%Y/%m/%d %H:%M'))
+
+
+class NotificationType(models.Model):
+    name = models.CharField(max_length=20)
+    notification = models.ManyToManyField(Notification)
+    date_created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['date_created']
+
+    @property
+    def create_date_time(self):
+        return datetime.datetime.strftime(self.date_created, '%Y/%m/%d %H:%M'), _(jdatetime.datetime.fromgregorian(date=self.date_created).strftime('%Y/%m/%d %H:%M'))
