@@ -41,6 +41,8 @@ class User(AbstractUser):
     point = models.IntegerField(default=0)
     company_name = models.CharField(max_length=60, null=True, blank=True)
     remained_sms = models.IntegerField(default=0)
+    admin = models.ForeignKey('self', models.CASCADE,
+                              null=True, blank=True, related_name='subUsers')
     date_modified = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -57,7 +59,7 @@ class User(AbstractUser):
 
 class UserImage(models.Model):
     path = models.ImageField(upload_to='files/images')
-    user = models.ForeignKey(User, models.CASCADE)
+    user = models.ForeignKey(User, models.CASCADE, related_name='images')
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
 
