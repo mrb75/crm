@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from .models import *
+import random
+from django.contrib.auth.models import Group
 
 
 class UserImageSerializer(serializers.ModelSerializer):
@@ -13,15 +15,41 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         images = UserImageSerializer(many=True)
         exclude = ['date_joined', 'last_login',
-                   'birth_date', 'images']
+                   'birth_date', 'password']
         extra_kwargs = {'password': {'write_only': True}}
 
+    def create(self, validated_data):
+        user = User.objects.create(
+            username=validated_data['username'])
+        for idx in validated_data.keys():
+            if idx in ['email', 'first_name', 'last_name', 'gender', 'mobile', 'national_code']:
+                setattr(user, idx, validated_data[idx])
+        user.admin = validated_data['admin']
+        user.set_password(''.join(random.sample(
+            list('abcdefghigklmnopqrstuvwxyz'), 10)))
+        if user.admin.is_superuser:
+            user.groups.add(Group.objects.get(name='admin_user'))
+        else:
+            user.groups.add(Group.objects.get(name='end_user'))
 
-class EditProfile(serializers.Serializer):
-    first_name = serializers.CharField(max_length=100)
-    last_name = serializers.CharField(max_length=100)
+        user.save()
+        return user
+
+    def update(self, instance, validated_data):
+        user = instance
+        for idx in validated_data.keys():
+            if idx in ['email', 'first_name', 'last_name', 'gender', 'mobile', 'national_code']:
+                setattr(user, idx, validated_data[idx])
+        user.save()
+        return user
+
+
+class UserFormSerializer(serializers.Serializer):
+    first_name = serializers.CharField(max_length=100, default=None)
+    last_name = serializers.CharField(max_length=100, default=None)
     username = serializers.CharField(max_length=100)
-    email = serializers.EmailField()
-    mobile = serializers.CharField()
-    national_code = serializers.CharField()
-    Gender = serializers.ChoiceField(choices=['Male', 'Female', 'Nothing'])
+    email = serializers.EmailField(default=None)
+    mobile = serializers.CharField(default=None)
+    national_code = serializers.CharField(default=None)
+    Gender = serializers.ChoiceField(
+        choices=['Male', 'Female', 'Nothing'], default='Nothing')
