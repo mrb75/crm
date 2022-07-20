@@ -7,6 +7,8 @@ from rest_framework.permissions import IsAdminUser, IsAuthenticated, BasePermiss
 from rest_framework.authentication import TokenAuthentication
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from .permissions import *
+from rest_framework.parsers import MultiPartParser
+from .models import UserImage
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -71,3 +73,55 @@ class EditProfile(UpdateAPIView):
             return Response({'result': True, 'user': profile_serializer.data})
         else:
             return Response({'result': False, 'response': profile_serializer.errors}, status=403)
+
+
+class SubUserImageViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication, JWTAuthentication]
+
+    def get_queryset(self):
+        return UserImage.objects.filter(user__admin=self.request.user)
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [IsAuthenticated, UserImageViewPermission]
+        elif self.action == 'create':
+            permission_classes = [IsAuthenticated, UserImageAddPermission]
+        elif self.action in ['update', 'partial_update']:
+            permission_classes = [IsAuthenticated, UserImageChangePermission]
+        elif self.action in ['destroy']:
+            permission_classes = [IsAuthenticated, UserImageDeletePermission]
+        else:
+            permission_classes = [IsAuthenticated]
+
+        return [permission() for permission in permission_classes]
+
+    def create(self, request):
+        self.parser_classes = [MultiPartParser]
+        sub_user = User.objects.get(pk=request.data['user'])
+        self.check_object_permissions(request, sub_user)
+        data = {
+            'path': request.data['image'],
+            'user': sub_user.id,
+        }
+        image_serializer = UserImageSerializer(data=data)
+        if image_serializer.is_valid():
+            image = UserImage.objects.create(
+                user=sub_user, path=request.data['image'])
+            image.save()
+            image_serializer_result = UserImageSerializer(image)
+            return Response({'result': True, 'created_image': image_serializer_result.data})
+        else:
+            return Response({'result': False, 'response': image_serializer.errors}, status=403)
+
+    def partial_update(self, request, pk=0):
+        pass
+
+    def update(self, request):
+        pass
+
+    def destroy(self, request, pk=0):
+        self.check_object_permissions(request, UserImage.objects.get(pk=pk))
+        image = UserImage.objects.get(pk=pk)
+        image.delete()
+        return Response({'result': True})

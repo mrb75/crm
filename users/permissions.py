@@ -45,7 +45,7 @@ class UserImageChangePermission(BasePermission):
         return request.user.has_perm('users.change_userimage')
 
     def has_object_permission(self, request, view, obj):
-        return request.user == obj.admin or (request.user.admin == obj.admin)
+        return request.user == obj.user.admin or (request.user.admin == obj.user.admin)
 
 
 class UserImageDeletePermission(BasePermission):
@@ -53,4 +53,4 @@ class UserImageDeletePermission(BasePermission):
         return request.user.has_perm('users.delete_userimage')
 
     def has_object_permission(self, request, view, obj):
-        return request.user == obj.admin
+        return request.user == obj.user.admin

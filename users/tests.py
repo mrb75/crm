@@ -1,6 +1,6 @@
 from django.test import TestCase
 from rest_framework.test import APITestCase
-from .models import User
+from .models import User, UserImage
 from django.contrib.auth.models import Group
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -61,7 +61,7 @@ class UrlTest(APITestCase):
             r_users_change = self.client.patch(
                 '/api/users/users/'+str(sub_user.id)+'/', data={'username': 'test2', 'fist_name': 'test2', 'last_name': 'testian2'}, format='json')
             self.assertEqual(r_users_change.status_code,
-                             200)
+                             self.expected_status_users_change)
 
     def test_cant_change_other_sub_users(self):
         other_admin = User.objects.create(
@@ -84,3 +84,50 @@ class UrlTest(APITestCase):
             r_edit_profile = self.client.patch(
                 '/api/users/EditProfile', data={'username': 'test2', 'fist_name': 'test22', 'last_name': 'testian2'}, format='json')
             self.assertEqual(r_edit_profile.status_code, 200)
+
+    def test_can_add_and_remove_image_for_own_sub_user(self):
+        self.__jwt_auth(self.u_admin)
+        sub_user = self.u_end
+        image = open('files/images/aicon.png', 'rb')
+        r_user_image_add = self.client.post(
+            '/api/users/usersImage/', data={'image': image, 'user': sub_user.id})
+        self.assertEqual(r_user_image_add.status_code, 200)
+        # print(r_user_image_add.data)
+        r_user_image_remove = self.client.delete(
+            '/api/users/usersImage/'+str(r_user_image_add.data['created_image']['id'])+'/')
+        self.assertEqual(r_user_image_remove.status_code, 200)
+
+    def test_cant_add_and_remove_image_for_own_sub_user(self):
+        other_admin = User.objects.create(
+            username='u_other_admin', password='Mrb76420')
+        # create another admin user
+        other_admin.groups.add(Group.objects.get(name='admin_user'))
+        # consider first global u_end(sub user of first admin) as sub user
+        sub_user = self.u_end
+        # authenticate with new admin which created in this test
+        self.__jwt_auth(other_admin)
+
+        # test other admin can not add image for su user of u_admin
+        with open('files/images/aicon.png', 'rb') as image:
+            r_user_image_add = self.client.post(
+                '/api/users/usersImage/', data={'image': image, 'user': sub_user.id})
+        self.assertEqual(r_user_image_add.status_code, 403)
+
+        # authenticate with u_admin
+        self.__jwt_auth(self.u_admin)
+
+        # add image for u_end
+        with open('files/images/aicon.png', 'rb') as image:
+            r_user_image_add = self.client.post(
+                '/api/users/usersImage/', data={'image': image, 'user': sub_user.id})
+
+        # test other admin can not remove u_end image
+        self.__jwt_auth(other_admin)
+        r_user_image_remove = self.client.delete(
+            '/api/users/usersImage/'+str(r_user_image_add.data['created_image']['id'])+'/')
+        self.assertEqual(r_user_image_remove.status_code, 403)
+
+        # remove created image
+        self.__jwt_auth(self.u_admin)
+        self.client.delete(
+            '/api/users/usersImage/'+str(r_user_image_add.data['created_image']['id'])+'/')

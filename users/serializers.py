@@ -7,7 +7,7 @@ from django.contrib.auth.models import Group
 class UserImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserImage
-        fields = ['__all__']
+        fields = '__all__'
 
 
 class UserSerializer(serializers.ModelSerializer):
