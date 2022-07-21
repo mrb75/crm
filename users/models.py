@@ -78,7 +78,8 @@ class UserImage(models.Model):
 class Notification(models.Model):
     user = models.ForeignKey(User, models.CASCADE,
                              related_name='notifications')
-    writer = models.ForeignKey(User, models.CASCADE)
+    writer = models.ForeignKey(
+        User, models.CASCADE, related_name='sentNotifications')
     is_news = models.BooleanField(default=False)
     text = models.TextField(max_length=1000)
     date_created = models.DateTimeField(auto_now_add=True)
@@ -98,7 +99,7 @@ class Notification(models.Model):
 
 class NotificationType(models.Model):
     name = models.CharField(max_length=20)
-    notification = models.ManyToManyField(Notification)
+    notification = models.ManyToManyField(Notification, related_name='types')
     date_created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -151,7 +152,7 @@ class Ticket(models.Model):
     message_type = models.CharField(
         choices=Type.choices, default=Type.SUGGESTION, max_length=30)
     subject = models.CharField(max_length=255)
-    user = models.ForeignKey(User, models.CASCADE)
+    user = models.ForeignKey(User, models.CASCADE, related_name='tickets')
     status = models.CharField(
         choices=State.choices, default=State.INIT, max_length=30)
     text = models.TextField(max_length=20000)
