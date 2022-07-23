@@ -30,7 +30,6 @@ class Product(models.Model):
     name = models.CharField(max_length=50)
     user = models.ForeignKey(
         'users.User', models.CASCADE, related_name='products')
-    bills = models.ManyToManyField('Bill', through='BillProduct')
     inventory = models.IntegerField(default=0)
     discount = models.PositiveIntegerField(validators=[MaxValueValidator(100)])
     warranty = models.IntegerField(default=0)
@@ -64,6 +63,7 @@ class Bill(models.Model):
     code = models.CharField(max_length=100)
     creator = models.ForeignKey(
         'users.User', models.CASCADE, related_name='bills')
+    products = models.ManyToManyField('Product', through='BillProduct')
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
 
