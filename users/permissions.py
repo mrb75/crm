@@ -6,6 +6,14 @@ class SubUsersViewPermission(BasePermission):
         return request.user.has_perm('users.view_user')
 
 
+class SubUserRetrievePermission(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.has_perm('users.view_user')
+
+    def has_object_permission(self, request, view, obj):
+        return request.user == obj.user
+
+
 class SubUsersAddPermission(BasePermission):
     def has_permission(self, request, view):
         return request.user.has_perm('users.add_user')
@@ -30,6 +38,14 @@ class SubUsersDeletePermission(BasePermission):
 class UserImageViewPermission(BasePermission):
     def has_permission(self, request, view):
         return request.user.has_perm('users.view_userimage')
+
+
+class UserImageRetrievePermission(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.has_perm('users.view_userimage')
+
+    def has_object_permission(self, request, view, obj):
+        return request.user == obj.user
 
 
 class UserImageAddPermission(BasePermission):
@@ -59,6 +75,14 @@ class UserImageDeletePermission(BasePermission):
 class TicketViewPermission(BasePermission):
     def has_permission(self, request, view):
         return request.user.has_perm('users.view_ticket')
+
+
+class TicketRetrievePermission(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.has_perm('users.view_ticket')
+
+    def has_object_permission(self, request, view, obj):
+        return request.user == obj.user
 
 
 class TicketAddPermission(BasePermission):
