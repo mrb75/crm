@@ -18,6 +18,17 @@ class UserSerializer(serializers.ModelSerializer):
                    'birth_date', 'password']
         extra_kwargs = {'password': {'write_only': True}}
 
+
+class UserFormSerializer(serializers.Serializer):
+    first_name = serializers.CharField(max_length=100, default=None)
+    last_name = serializers.CharField(max_length=100, default=None)
+    username = serializers.CharField(max_length=100)
+    email = serializers.EmailField(default=None)
+    mobile = serializers.CharField(default=None)
+    national_code = serializers.CharField(default=None)
+    Gender = serializers.ChoiceField(
+        choices=['Male', 'Female', 'Nothing'], default='Nothing')
+
     def create(self, validated_data):
         user = User.objects.create(
             username=validated_data['username'])
@@ -44,12 +55,23 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 
-class UserFormSerializer(serializers.Serializer):
-    first_name = serializers.CharField(max_length=100, default=None)
-    last_name = serializers.CharField(max_length=100, default=None)
-    username = serializers.CharField(max_length=100)
-    email = serializers.EmailField(default=None)
-    mobile = serializers.CharField(default=None)
-    national_code = serializers.CharField(default=None)
-    Gender = serializers.ChoiceField(
-        choices=['Male', 'Female', 'Nothing'], default='Nothing')
+class TicketSerializer(serializers.ModelSerializer):
+    # user = UserSerializer()
+
+    class Meta:
+        model = Ticket
+        fields = '__all__'
+
+
+class TicketFormSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ticket
+        fields = '__all__'
+
+    def create(self, validated_data):
+        ticket = Ticket.objects.create(user=validated_data['user'])
+        for idx in validated_data.keys():
+            setattr(ticket, idx, validated_data[idx])
+
+        ticket.save()
+        return ticket

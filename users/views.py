@@ -8,7 +8,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from .permissions import *
 from rest_framework.parsers import MultiPartParser
-from .models import UserImage
+from .models import UserImage, Ticket
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -19,8 +19,11 @@ class UserViewSet(viewsets.ModelViewSet):
         return self.request.user.subUsers.all()
 
     def get_permissions(self):
-        if self.action in ['list', 'retrieve']:
+        if self.action == 'list':
             permission_classes = [IsAuthenticated, SubUsersViewPermission]
+        elif self.action == 'retrieve':
+            permission_classes = [IsAuthenticated, SubUserRetrievePermission]
+
         elif self.action == 'create':
             permission_classes = [IsAuthenticated, SubUsersAddPermission]
         elif self.action in ['update', 'partial_update']:
@@ -33,7 +36,7 @@ class UserViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def create(self, request):
-        user_serializer = UserSerializer(data=request.data)
+        user_serializer = UserFormSerializer(data=request.data)
         if user_serializer.is_valid():
             request_data = request.data
             request_data['admin'] = request.user
@@ -45,7 +48,7 @@ class UserViewSet(viewsets.ModelViewSet):
     def partial_update(self, request, pk=None):
         update_instance = User.objects.get(pk=pk)
         self.check_object_permissions(request, update_instance)
-        user_serializer = UserSerializer(data=request.data)
+        user_serializer = UserFormSerializer(data=request.data)
         if user_serializer.is_valid():
             user = user_serializer.update(
                 update_instance, request.data)
@@ -76,6 +79,7 @@ class EditProfile(UpdateAPIView):
 
 
 class SubUserImageViewSet(viewsets.ModelViewSet):
+    serializer_class = UserImageSerializer
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication, JWTAuthentication]
 
@@ -83,8 +87,10 @@ class SubUserImageViewSet(viewsets.ModelViewSet):
         return UserImage.objects.filter(user__admin=self.request.user)
 
     def get_permissions(self):
-        if self.action in ['list', 'retrieve']:
+        if self.action == 'list':
             permission_classes = [IsAuthenticated, UserImageViewPermission]
+        elif self.action == 'retrieve':
+            permission_classes = [IsAuthenticated, UserImageRetrievePermission]
         elif self.action == 'create':
             permission_classes = [IsAuthenticated, UserImageAddPermission]
         elif self.action in ['update', 'partial_update']:
@@ -125,3 +131,54 @@ class SubUserImageViewSet(viewsets.ModelViewSet):
         image = UserImage.objects.get(pk=pk)
         image.delete()
         return Response({'result': True})
+
+
+class TicketViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication, JWTAuthentication]
+    serializer_class = TicketSerializer
+
+    def get_queryset(self):
+        return self.request.user.tickets.all()
+
+    def get_permissions(self):
+        if self.action == 'list':
+            permission_classes = [IsAuthenticated, TicketViewPermission]
+        elif self.action == 'retrieve':
+            permission_classes = [IsAuthenticated, TicketRetrievePermission]
+        elif self.action == 'create':
+            permission_classes = [IsAuthenticated, TicketAddPermission]
+        elif self.action in ['update', 'partial_update']:
+            permission_classes = [IsAuthenticated, TicketChangePermission]
+        elif self.action in ['destroy']:
+            permission_classes = [IsAuthenticated, TicketRemovePermission]
+        else:
+            permission_classes = [IsAuthenticated]
+
+        return [permission() for permission in permission_classes]
+
+    def list(self, request):
+        return Response({'result': True, 'data': self.queryset})
+
+    def retrieve(self, request, pk=0):
+        ticket = Ticket.objects.get(pk=pk)
+        self.check_object_permissions(request, ticket)
+        return Response({'result': True, 'data': TicketSerializer(ticket).data})
+
+    def create(self, request):
+        ticket_serializer = TicketFormSerializer(data=request.data)
+        if ticket_serializer.is_valid():
+            request_data = request.data
+            request_data['user'] = request.user
+            ticket = ticket_serializer.create(request_data)
+            return Response({'result': True, 'created_ticket': TicketSerializer(ticket).data}, status=201)
+        else:
+            return Response({'result': False, 'response': ticket_serializer.errors}, status=403)
+
+    def partial_update(self, request, pk=0):
+        self.check_object_permissions(request, Ticket.objects.get(pk=pk))
+        super().partial_update(request, pk)
+
+    def destroy(self, request, pk=0):
+        self.check_object_permissions(request, Ticket.objects.get(pk=pk))
+        super().destroy(request, pk)

@@ -1,6 +1,6 @@
 from django.test import TestCase
 from rest_framework.test import APITestCase
-from .models import User, UserImage
+from .models import User, UserImage, Ticket
 from django.contrib.auth.models import Group
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -131,3 +131,37 @@ class UrlTest(APITestCase):
         self.__jwt_auth(self.u_admin)
         self.client.delete(
             '/api/users/usersImage/'+str(r_user_image_add.data['created_image']['id'])+'/')
+
+    def test_can_add_ticket(self):
+        self.__jwt_auth(self.u_end)
+        r_add_tickets = self.client.post('/api/users/tickets/', data={'message_type': 'Management',
+                                                                      'status': 'Waiting',
+                                                                      'subject': 'test',
+                                                                      'user': self.u_end.id,
+                                                                      'text': 'hello world!',
+                                                                      }, format='json')
+        self.assertEqual(r_add_tickets.status_code, 201)
+
+    def test_can_saw_own_tickets(self):
+        for user in [self.u_admin, self.u_employee, self.u_end]:
+            self.__jwt_auth(user)
+            r_tickets = self.client.get('/api/users/tickets/', format='json')
+            self.assertEqual(r_tickets.status_code, 200)
+
+    def test_can_saw_one_ticket_of_own(self):
+        other_user = User.objects.create(
+            username='u_other_user', password='Mrb76420')
+        for user in [self.u_admin, self.u_employee, self.u_end]:
+            self.__jwt_auth(user)
+            own_ticket = Ticket.objects.create(
+                subject='own_ticket', user=user, text='its my own', message_type='Support', status='Waiting')
+            r_ticket_own = self.client.get(
+                '/api/users/tickets/'+str(own_ticket.id)+'/', format='json')
+            self.assertEqual(r_ticket_own.status_code, 200)
+            # create another admin user
+            other_user.groups.add(Group.objects.get(name='end_user'))
+            other_user_ticket = Ticket.objects.create(
+                subject='own_ticket', user=other_user, text='its my own', message_type='Support', status='Waiting')
+            r_ticket_other = self.client.get(
+                '/api/users/tickets/'+str(other_user_ticket.id)+'/', format='json')
+            self.assertEqual(r_ticket_other.status_code, 403)
