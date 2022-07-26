@@ -29,7 +29,7 @@ class Category(models.Model):
 class Product(models.Model):
     name = models.CharField(max_length=50)
     user = models.ForeignKey(
-        'users.User', models.CASCADE, related_name='products')
+        'users.User', models.CASCADE, related_name='products', blank=True, null=True)
     inventory = models.IntegerField(default=0)
     discount = models.PositiveIntegerField(validators=[MaxValueValidator(100)])
     warranty = models.IntegerField(default=0)
