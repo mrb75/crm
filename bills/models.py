@@ -84,7 +84,7 @@ class Bill(models.Model):
 
 
 class BillProduct(models.Model):
-    customer = models.ForeignKey(
+    seller = models.ForeignKey(
         'users.User', models.CASCADE, related_name='sells')
     bill = models.ForeignKey('Bill', models.CASCADE, related_name='sells')
     product = models.ForeignKey(
