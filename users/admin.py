@@ -29,10 +29,18 @@ class RequestLogAdmin(admin.ModelAdmin):
                     'referer', 'url', 'method')
 
 
+class CustomUserAdmin(UserAdmin):
+    fieldsets = (
+        (None, {
+            'fields': ('username', 'first_name', 'last_name', 'email', 'mobile', 'birth_date', 'company_name', 'admin')
+        }),
+    )
+
+
 admin.site.register(Country, CountryAdmin)
 admin.site.register(Province, ProvinceAdmin)
 admin.site.register(City, CityAdmin)
 admin.site.register(RequestLog, RequestLogAdmin)
 admin.site.register(Notification, NotificationAdmin)
 admin.site.register(NotificationType, NotificationTypeAdmin)
-admin.site.register(User, UserAdmin)
+admin.site.register(User, CustomUserAdmin)

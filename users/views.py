@@ -38,9 +38,10 @@ class UserViewSet(viewsets.ModelViewSet):
     def create(self, request):
         user_serializer = UserFormSerializer(data=request.data)
         if user_serializer.is_valid():
-            request_data = request.data
+            request_data = dict(**(request.data))
+            # print(request_data, request.data)
             request_data['admin'] = request.user
-            user = user_serializer.create(request.data)
+            user = user_serializer.create(request_data)
             return Response({'response': True, 'created_user': UserSerializer(user).data})
         else:
             return Response({'response': False, 'errors': user_serializer.errors})

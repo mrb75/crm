@@ -1,13 +1,31 @@
 from django.test import TestCase
 from rest_framework.test import APITestCase
 from .models import User, UserImage, Ticket
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, Permission
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class UrlTest(APITestCase):
 
     def setUp(self):
+        admin_permissions = Permission.objects.filter(codename__in=[
+            'view_user', 'add_user', 'change_user', 'delete_user',
+            'view_userimage', 'add_userimage', 'change_userimage', 'delete_userimage',
+            'view_notification', 'add_notification', 'change_notification', 'delete_notification',
+            'view_notificationtype', 'add_notificationtype', 'change_notificationtype', 'delete_notificationtype',
+            'view_userqueue', 'add_userqueue', 'change_userqueue', 'delete_userqueue',
+            'view_ticket', 'add_ticket', 'change_ticket', 'delete_ticket',
+        ])
+        employee_permissions = Permission.objects.filter(
+            codename__in=['view_ticket', 'add_ticket', 'change_ticket', 'delete_ticket'])
+        end_permissions = Permission.objects.filter(
+            codename__in=['view_userimage', 'add_userimage', 'change_userimage', 'delete_userimage', 'view_ticket', 'add_ticket', 'change_ticket', 'delete_ticket'])
+        g_admin = Group.objects.create(name='admin_user')
+        g_employee = Group.objects.create(name='employee_user')
+        g_end = Group.objects.create(name='end_user')
+        g_admin.permissions.set(admin_permissions)
+        g_employee.permissions.set(employee_permissions)
+        g_end.permissions.set(end_permissions)
         self.u_admin = User.objects.create(
             username='u_admin', password='Mrb76420')
         self.u_admin.groups.add(Group.objects.get(name='admin_user'))
@@ -41,7 +59,7 @@ class UrlTest(APITestCase):
             self.__jwt_auth(user)
             create_user_data = {
                 'username': 'test_'+user.username,
-                'fist_name': 'test',
+                'first_name': 'test',
                 'last_name': 'testian',
                 'email': 'test@test.test',
                 'gender': 'Male',

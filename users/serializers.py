@@ -30,20 +30,20 @@ class UserFormSerializer(serializers.Serializer):
         choices=['Male', 'Female', 'Nothing'], default='Nothing')
 
     def create(self, validated_data):
-        user = User.objects.create(
-            username=validated_data['username'])
-        for idx in validated_data.keys():
-            if idx in ['email', 'first_name', 'last_name', 'gender', 'mobile', 'national_code']:
-                setattr(user, idx, validated_data[idx])
+        user = User(**validated_data)
+        # user.username = validated_data['username']
+        # for idx in validated_data.keys():
+        #     if idx in ['email', 'first_name', 'last_name', 'gender', 'mobile', 'national_code']:
+        #         setattr(user, idx, validated_data[idx])
         user.admin = validated_data['admin']
         user.set_password(''.join(random.sample(
             list('abcdefghigklmnopqrstuvwxyz'), 10)))
+        user.save()
         if user.admin.is_superuser:
             user.groups.add(Group.objects.get(name='admin_user'))
         else:
             user.groups.add(Group.objects.get(name='end_user'))
 
-        user.save()
         return user
 
     def update(self, instance, validated_data):
