@@ -38,6 +38,14 @@ class BillViewSet(viewsets.ModelViewSet):
         self.check_object_permissions(request, bill)
         return super().retrieve(request, pk=pk)
 
+    def create(self, request):
+        bill_form_serializer = BillFormSerializer(data=request.data)
+        if bill_form_serializer.is_valid():
+            bill = bill_form_serializer.create(request.data, request.user)
+            return Response({'created_bill': BillSerializer(bill).data}, status=201)
+        else:
+            return Response({'response': bill_form_serializer.errors}, status=400)
+
     def partial_update(self, request, pk=0):
         bill = Bill.objects.get(pk=pk)
         self.check_object_permissions(request, bill)
