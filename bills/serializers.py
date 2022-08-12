@@ -6,7 +6,13 @@ from users.models import User
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = '__all__'
+        exclude = ['user']
+
+    def create(self, validated_data, user):
+        category = Category(**validated_data)
+        category.user = user
+        category.save()
+        return category
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -15,6 +21,24 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = '__all__'
+
+
+class ProductFormSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = '__all__'
+
+    def create(self, validated_data, user=None):
+        data = validated_data.copy()
+        category_data = data.pop('category')
+        product = Product(**data)
+        print(category_data)
+        category = Category.objects.get(pk=category_data)
+        product.category = category
+        if user:
+            product.user = user
+        product.save()
+        return product
 
 
 class BillSerializer(serializers.ModelSerializer):
