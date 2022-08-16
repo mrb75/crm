@@ -11,7 +11,7 @@ class BillRetrievePermission(BasePermission):
         return request.user.has_perm('bills.view_bill')
 
     def has_object_permission(self, request, view, obj):
-        return request.user == obj.user.admin
+        return (request.user == obj.user.admin or request.user.admin == obj.user.admin != None)
 
 
 class BillAddPermission(BasePermission):
@@ -24,7 +24,7 @@ class BillChangePermission(BasePermission):
         return request.user.has_perm('bills.change_bill')
 
     def has_object_permission(self, request, view, obj):
-        return request.user == obj.user.admin
+        return (request.user == obj.user.admin or request.user.admin == obj.user.admin != None)
 
 
 class BillRemovePermission(BasePermission):
@@ -32,7 +32,7 @@ class BillRemovePermission(BasePermission):
         return request.user.has_perm('bills.delete_bill')
 
     def has_object_permission(self, request, view, obj):
-        return request.user == obj.user.admin
+        return (request.user == obj.user.admin or request.user.admin == obj.user.admin != None)
 
 
 class CategoryViewPermission(BasePermission):
@@ -45,7 +45,7 @@ class CategoryRetrievePermission(BasePermission):
         return request.user.has_perm('bills.view_category')
 
     def has_object_permission(self, request, view, obj):
-        return request.user == obj.user
+        return (request.user == obj.user or request.user.admin == obj.user != None)
 
 
 class CategoryAddPermission(BasePermission):
@@ -58,7 +58,7 @@ class CategoryChangePermission(BasePermission):
         return request.user.has_perm('bills.change_category')
 
     def has_object_permission(self, request, view, obj):
-        return request.user == obj.user
+        return (request.user == obj.user or request.user.admin == obj.user != None)
 
 
 class CategoryRemovePermission(BasePermission):
@@ -66,7 +66,7 @@ class CategoryRemovePermission(BasePermission):
         return request.user.has_perm('bills.delete_category')
 
     def has_object_permission(self, request, view, obj):
-        return request.user == obj.user
+        return (request.user == obj.user or (request.user.admin == obj.user != None))
 
 
 class ProductViewPermission(BasePermission):
@@ -92,7 +92,7 @@ class ProductChangePermission(BasePermission):
         return request.user.has_perm('bills.change_product')
 
     def has_object_permission(self, request, view, obj):
-        return (request.user == obj.user) or (request.user == obj.category.user)
+        return (request.user == obj.user) or (request.user == obj.category.user) or (request.user.admin == obj.user.admin != None) or (request.user.admin == obj.category.user)
 
 
 class ProductRemovePermission(BasePermission):
@@ -100,4 +100,4 @@ class ProductRemovePermission(BasePermission):
         return request.user.has_perm('bills.delete_product')
 
     def has_object_permission(self, request, view, obj):
-        return (request.user == obj.user) or (request.user == obj.category.user)
+        return (request.user == obj.user) or (request.user == obj.category.user) or (request.user.admin == obj.user.admin != None) or (request.user.admin == obj.category.user)
