@@ -102,3 +102,159 @@ class UrlTest(APITestCase):
         r_bill_add = self.client.post(
             '/api/bills/bills/', data={'cash_payment': 1000, 'user': self.u_end.id, 'products': [{'seller': self.u_employee.id, 'product': self.test_product.id, 'number': 1}]}, format='json')
         self.assertEqual(r_bill_add.status_code, 201)
+
+    def test_admin_can_saw_category_list(self):
+        self.__jwt_auth(self.u_admin)
+        r_categories_list = self.client.get(
+            '/api/bills/categories/', format='json')
+        self.assertEqual(r_categories_list.status_code, 200)
+
+    def test_employee_can_saw_category_list(self):
+        self.__jwt_auth(self.u_employee)
+        permissions = Permission.objects.filter(codename__in=[
+            'view_category', 'add_category', 'change_category', 'delete_category',
+        ])
+        self.u_employee.user_permissions.set(permissions)
+        r_categories_list = self.client.get(
+            '/api/bills/categories/', format='json')
+        self.assertEqual(r_categories_list.status_code, 200)
+
+    def test_employee_cant_saw_category_list(self):
+        self.__jwt_auth(self.u_employee)
+        r_categories_list = self.client.get(
+            '/api/bills/categories/', format='json')
+        self.assertEqual(r_categories_list.status_code, 403)
+
+    def test_admin_can_add_category(self):
+        self.__jwt_auth(self.u_admin)
+        r_category_add = self.client.post('/api/bills/categories/', data={
+            'name': 'test'
+        }, format='json')
+        self.assertEqual(r_category_add.status_code, 201)
+
+    def test_employee_can_add_category(self):
+        self.__jwt_auth(self.u_employee)
+        permissions = Permission.objects.filter(codename__in=[
+            'view_category', 'add_category', 'change_category', 'delete_category',
+        ])
+        self.u_employee.user_permissions.set(permissions)
+        r_category_add = self.client.post('/api/bills/categories/', data={
+            'name': 'test'
+        }, format='json')
+        self.assertEqual(r_category_add.status_code, 201)
+
+    def test_employee_cant_add_category(self):
+        self.__jwt_auth(self.u_employee)
+        r_category_add = self.client.post('/api/bills/categories/', data={
+            'name': 'test'
+        }, format='json')
+        self.assertEqual(r_category_add.status_code, 403)
+
+    def test_admin_can_remove_category(self):
+        self.__jwt_auth(self.u_admin)
+        category = Category.objects.create(name='test', user=self.u_admin)
+        r_category_remove = self.client.delete(
+            '/api/bills/categories/'+str(category.id)+'/', format='json')
+        self.assertEqual(r_category_remove.status_code, 204)
+
+    def test_admin_cant_remove_category(self):
+        self.__jwt_auth(self.u_admin)
+        self.u_other_admin = User.objects.create(
+            username='u_other_admin', password='Mrb76420')
+        self.u_other_admin.groups.add(Group.objects.get(name='admin_user'))
+        category = Category.objects.create(
+            name='test', user=self.u_other_admin)
+        r_category_remove = self.client.delete(
+            '/api/bills/categories/'+str(category.id)+'/', format='json')
+        self.assertEqual(r_category_remove.status_code, 403)
+
+    def test_employee_can_remove_category(self):
+        self.__jwt_auth(self.u_employee)
+        category = Category.objects.create(
+            name='test', user=self.u_admin)
+        permissions = Permission.objects.filter(codename__in=[
+            'view_category', 'add_category', 'change_category', 'delete_category',
+        ])
+        self.u_employee.user_permissions.set(permissions)
+        r_category_remove = self.client.delete(
+            '/api/bills/categories/'+str(category.id)+'/', format='json')
+        self.assertEqual(r_category_remove.status_code, 204)
+
+    def test_employee_cant_remove_category(self):
+        self.__jwt_auth(self.u_employee)
+        self.u_other_admin = User.objects.create(
+            username='u_other_admin', password='Mrb76420')
+        self.u_other_admin.groups.add(Group.objects.get(name='admin_user'))
+        category = Category.objects.create(
+            name='test', user=self.u_other_admin)
+        r_category_remove = self.client.delete(
+            '/api/bills/categories/'+str(category.id)+'/', format='json')
+        self.assertEqual(r_category_remove.status_code, 403)
+
+    def test_admin_can_saw_product_list(self):
+        self.__jwt_auth(self.u_admin)
+        r_products_list = self.client.get(
+            '/api/bills/products/', format='json')
+        self.assertEqual(r_products_list.status_code, 200)
+
+    def test_employee_can_saw_product_list(self):
+        self.__jwt_auth(self.u_employee)
+        permissions = Permission.objects.filter(codename__in=[
+            'view_product', 'add_product', 'change_product', 'delete_product',
+        ])
+        self.u_employee.user_permissions.set(permissions)
+        r_products_list = self.client.get(
+            '/api/bills/products/', format='json')
+        self.assertEqual(r_products_list.status_code, 200)
+
+    def test_employee_cant_saw_product_list(self):
+        self.__jwt_auth(self.u_employee)
+        r_products_list = self.client.get(
+            '/api/bills/products/', format='json')
+        self.assertEqual(r_products_list.status_code, 403)
+
+    def test_admin_can_add_product(self):
+        self.__jwt_auth(self.u_admin)
+        category = Category.objects.create(
+            name='test', user=self.u_admin)
+        r_product_add = self.client.post('/api/bills/products/', data={
+            'name': 'test',
+            'inventory': 10,
+            'discount': 15,
+            'price': 10500,
+            'last_price': 15000,
+            'category': category.id,
+        }, format='json')
+        self.assertEqual(r_product_add.status_code, 201)
+
+    def test_employee_can_add_product(self):
+        self.__jwt_auth(self.u_employee)
+        category = Category.objects.create(
+            name='test', user=self.u_admin)
+        permissions = Permission.objects.filter(codename__in=[
+            'view_product', 'add_product', 'change_product', 'delete_product',
+        ])
+        self.u_employee.user_permissions.set(permissions)
+        r_product_add = self.client.post('/api/bills/products/', data={
+            'name': 'test',
+            'inventory': 10,
+            'discount': 15,
+            'price': 10500,
+            'last_price': 15000,
+            'category': category.id,
+        }, format='json')
+        self.assertEqual(r_product_add.status_code, 201)
+
+    def test_employee_cant_add_product(self):
+        self.__jwt_auth(self.u_employee)
+        category = Category.objects.create(
+            name='test', user=self.u_admin)
+        r_product_add = self.client.post('/api/bills/products/', data={
+            'name': 'test',
+            'inventory': 10,
+            'discount': 15,
+            'price': 10500,
+            'last_price': 15000,
+            'category': category.id,
+        }, format='json')
+        self.assertEqual(r_product_add.status_code, 403)

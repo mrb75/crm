@@ -90,6 +90,11 @@ class CategoryViewSet(viewsets.ModelViewSet):
         else:
             return Response({'errors': category_serializer.errors}, status=400)
 
+    def destroy(self, request, pk=0):
+        category = Category.objects.get(pk=pk)
+        self.check_object_permissions(request, category)
+        return super().destroy(request, pk=pk)
+
 
 class ProductViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication, JWTAuthentication]
