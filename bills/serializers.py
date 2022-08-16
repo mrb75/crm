@@ -32,7 +32,6 @@ class ProductFormSerializer(serializers.ModelSerializer):
         data = validated_data.copy()
         category_data = data.pop('category')
         product = Product(**data)
-        print(category_data)
         category = Category.objects.get(pk=category_data)
         product.category = category
         if user:
