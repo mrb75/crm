@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import *
 import random
 from django.contrib.auth.models import Group, Permission
+from django.db.models import Q
 
 
 class UserImageSerializer(serializers.ModelSerializer):
@@ -91,3 +92,15 @@ class PermissionSetSerializer(serializers.Serializer):
     permission_id = serializers.ListField(
         child=serializers.IntegerField(min_value=1, max_value=1000)
     )
+
+    def validate_permission_id(self, value):
+        access_perms = Permission.objects.filter(Q(codename__contains='category')
+                                                 | Q(codename__contains='product')
+                                                 | Q(codename__contains='bill')
+                                                 | Q(codename__contains='user')
+                                                 | Q(codename__contains='userqueue')).values('id')
+        access_ids = set(map(lambda x: x['id'], access_perms))
+        if len(set(value)-access_ids):
+            raise serializers.ValidationError(
+                'you dont have access to some of permissions')
+        return value
