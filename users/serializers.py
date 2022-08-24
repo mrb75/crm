@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import *
 import random
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, Permission
 
 
 class UserImageSerializer(serializers.ModelSerializer):
@@ -29,7 +29,7 @@ class UserFormSerializer(serializers.Serializer):
     Gender = serializers.ChoiceField(
         choices=['Male', 'Female', 'Nothing'], default='Nothing')
 
-    def create(self, validated_data):
+    def create(self, validated_data, group=None):
         user = User(**validated_data)
         # user.username = validated_data['username']
         # for idx in validated_data.keys():
@@ -42,7 +42,10 @@ class UserFormSerializer(serializers.Serializer):
         if user.admin.is_superuser:
             user.groups.add(Group.objects.get(name='admin_user'))
         else:
-            user.groups.add(Group.objects.get(name='end_user'))
+            if group:
+                user.groups.add(Group.objects.get(name=group))
+            else:
+                user.groups.add(Group.objects.get(name='end_user'))
 
         return user
 
@@ -69,9 +72,22 @@ class TicketFormSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def create(self, validated_data):
-        ticket = Ticket.objects.create(user=validated_data['user'])
-        for idx in validated_data.keys():
-            setattr(ticket, idx, validated_data[idx])
+        # ticket = Ticket.objects.create(user=validated_data['user'])
+        # for idx in validated_data.keys():
+        #     setattr(ticket, idx, validated_data[idx])
+        ticket = Ticket(**validated_data)
 
         ticket.save()
         return ticket
+
+
+class PermissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Permission
+        fields = '__all__'
+
+
+class PermissionSetSerializer(serializers.Serializer):
+    permission_id = serializers.ListField(
+        child=serializers.IntegerField(min_value=1, max_value=1000)
+    )

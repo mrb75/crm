@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework.response import Response
-from rest_framework.generics import UpdateAPIView
+from rest_framework.generics import UpdateAPIView, ListAPIView, CreateAPIView, DestroyAPIView
 from rest_framework import viewsets
 from .serializers import *
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, BasePermission
@@ -9,6 +9,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from .permissions import *
 from rest_framework.parsers import MultiPartParser
 from .models import UserImage, Ticket
+# from rest_framework.mixins import ListModelMixin, CreateModelMixin, DestroyModelMixin
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -56,6 +57,53 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response({'response': True, 'updated_user': UserSerializer(user).data})
         else:
             return Response({'response': False, 'errors': user_serializer.errors})
+
+
+class EmployeeViewSet(viewsets.ModelViewSet):
+    serializer_class = UserSerializer
+    authentication_classes = [TokenAuthentication, JWTAuthentication]
+
+    def get_permissions(self):
+        if self.action == 'list':
+            permission_classes = [IsAuthenticated, SubUsersViewPermission]
+        elif self.action == 'retrieve':
+            permission_classes = [IsAuthenticated, SubUserRetrievePermission]
+
+        elif self.action == 'create':
+            permission_classes = [IsAuthenticated, SubUsersAddPermission]
+        elif self.action in ['update', 'partial_update']:
+            permission_classes = [IsAuthenticated, SubUsersChangePermission]
+        elif self.action in ['destroy']:
+            permission_classes = [IsAuthenticated, SubUsersDeletePermission]
+        else:
+            permission_classes = [IsAuthenticated]
+        permission_classes.append(IsAdminPermission)
+        return [permission() for permission in permission_classes]
+
+    def get_queryset(self):
+        return self.request.user.subUsers.filter(group_name='employee_user')
+
+    def create(self, request):
+        user_serializer = UserFormSerializer(data=request.data)
+        if user_serializer.is_valid():
+            request_data = dict(**(request.data))
+            # print(request_data, request.data)
+            request_data['admin'] = request.user
+            user = user_serializer.create(request_data, group='employee_user')
+            return Response({'response': True, 'created_user': UserSerializer(user).data}, status=201)
+        else:
+            return Response({'response': False, 'errors': user_serializer.errors}, status=400)
+
+    def partial_update(self, request, pk=None):
+        update_instance = User.objects.get(pk=pk)
+        self.check_object_permissions(request, update_instance)
+        user_serializer = UserFormSerializer(data=request.data)
+        if user_serializer.is_valid():
+            user = user_serializer.update(
+                update_instance, request.data)
+            return Response({'response': True, 'updated_user': UserSerializer(user).data})
+        else:
+            return Response({'response': False, 'errors': user_serializer.errors}, status=400)
 
 
 class EditProfile(UpdateAPIView):
@@ -183,3 +231,35 @@ class TicketViewSet(viewsets.ModelViewSet):
     def destroy(self, request, pk=0):
         self.check_object_permissions(request, Ticket.objects.get(pk=pk))
         super().destroy(request, pk)
+
+
+class UserPermissions(ListAPIView):
+    permission_classes = [IsAuthenticated, IsAdminPermission]
+    authentication_classes = [TokenAuthentication, JWTAuthentication]
+    serializer_class = PermissionSerializer
+
+    def get_queryset(self, pk):
+        user = self.request.user.subUsers.get(pk=pk)
+        return Permission.objects.filter(user=user)
+
+    def get(self, request, pk):
+        # print(self.get_queryset(pk))
+        return Response({'data': self.serializer_class(self.get_queryset(pk), many=True).data})
+
+
+class ChangeUserPermissions(UpdateAPIView):
+    permission_classes = [IsAuthenticated, IsAdminPermission]
+    authentication_classes = [TokenAuthentication, JWTAuthentication]
+
+    def get_queryset(self, pk):
+        return self.request.user.subUsers.get(pk=pk)
+
+    def patch(self, request, pk):
+        user = self.get_queryset(pk)
+        permission_serializer = PermissionSetSerializer(
+            data=request.data)
+        if permission_serializer.is_valid():
+            user.user_permissions.set(request.data['permission_id'])
+            return Response(status=204)
+        else:
+            return Response({'errors': permission_serializer.errors}, status=400)

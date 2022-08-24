@@ -104,3 +104,8 @@ class TicketRemovePermission(BasePermission):
 
     def has_object_permission(self, request, view, obj):
         return request.user == obj.user
+
+
+class IsAdminPermission(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.groups.filter(name="admin_user").exists()

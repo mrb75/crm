@@ -27,13 +27,13 @@ class UrlTest(APITestCase):
         g_employee.permissions.set(employee_permissions)
         g_end.permissions.set(end_permissions)
         self.u_admin = User.objects.create(
-            username='u_admin', password='Mrb76420')
+            username='u_admin', password='mmmmm46456456456')
         self.u_admin.groups.add(Group.objects.get(name='admin_user'))
         self.u_employee = User.objects.create(
-            username='u_employee', password='Mrb76420', admin=self.u_admin)
+            username='u_employee', password='mmmmm46456456456', admin=self.u_admin)
         self.u_employee.groups.add(Group.objects.get(name='employee_user'))
         self.u_end = User.objects.create(
-            username='u_end', password='Mrb76420', admin=self.u_admin)
+            username='u_end', password='mmmmm46456456456', admin=self.u_admin)
         self.u_end.groups.add(Group.objects.get(name='end_user'))
 
     def __jwt_auth(self, user):
@@ -83,11 +83,11 @@ class UrlTest(APITestCase):
 
     def test_cant_change_other_sub_users(self):
         other_admin = User.objects.create(
-            username='u_other_admin', password='Mrb76420')
+            username='u_other_admin', password='mmmmm46456456456')
 
         other_admin.groups.add(Group.objects.get(name='admin_user'))
         sub_user = User.objects.create(
-            username='u_other_admin_sub', password='Mrb76420')
+            username='u_other_admin_sub', password='mmmmm46456456456')
         other_admin.subUsers.set([sub_user])
         self.__jwt_auth(self.u_admin)
         r_users_change = self.client.patch(
@@ -117,7 +117,7 @@ class UrlTest(APITestCase):
 
     def test_cant_add_and_remove_image_for_own_sub_user(self):
         other_admin = User.objects.create(
-            username='u_other_admin', password='Mrb76420')
+            username='u_other_admin', password='mmmmm46456456456')
         # create another admin user
         other_admin.groups.add(Group.objects.get(name='admin_user'))
         # consider first global u_end(sub user of first admin) as sub user
@@ -168,7 +168,7 @@ class UrlTest(APITestCase):
 
     def test_can_saw_one_ticket_of_own(self):
         other_user = User.objects.create(
-            username='u_other_user', password='Mrb76420')
+            username='u_other_user', password='mmmmm46456456456')
         for user in [self.u_admin, self.u_employee, self.u_end]:
             self.__jwt_auth(user)
             own_ticket = Ticket.objects.create(
@@ -183,3 +183,66 @@ class UrlTest(APITestCase):
             r_ticket_other = self.client.get(
                 '/api/users/tickets/'+str(other_user_ticket.id)+'/', format='json')
             self.assertEqual(r_ticket_other.status_code, 403)
+
+    def test_can_create_employee(self):
+        expected_statuses = [201, 403, 403]
+        for idx, user in enumerate([self.u_admin, self.u_employee, self.u_end]):
+            self.__jwt_auth(user)
+            create_user_data = {
+                'username': 'test_'+user.username,
+                'first_name': 'test',
+                'last_name': 'testian',
+                'email': 'test@test.test',
+                'gender': 'Male',
+            }
+            r_employee_add = self.client.post(
+                '/api/users/employees/', data=create_user_data, format='json')
+            self.assertEqual(r_employee_add.status_code,
+                             expected_statuses[idx])
+
+    def test_can_change_own_sub_users(self):
+        expected_statuses = [200, 403, 403]
+        for idx, user in enumerate([self.u_admin, self.u_employee]):
+            self.__jwt_auth(user)
+            sub_user = User.objects.create(username='test_'+str(idx), first_name='test',
+                                           last_name='test', admin=user)
+            r_users_change = self.client.patch(
+                '/api/users/employees/'+str(sub_user.id)+'/', data={'username': 'test2', 'fist_name': 'test2', 'last_name': 'testian2'}, format='json')
+            self.assertEqual(r_users_change.status_code,
+                             expected_statuses[idx])
+
+    def test_cant_change_other_sub_users(self):
+        other_admin = User.objects.create(
+            username='u_other_admin', password='mmmmm46456456456')
+
+        other_admin.groups.add(Group.objects.get(name='admin_user'))
+        sub_user = User.objects.create(
+            username='u_other_admin_sub', password='mmmmm46456456456')
+        other_admin.subUsers.set([sub_user])
+        self.__jwt_auth(self.u_admin)
+        r_users_change = self.client.patch(
+            '/api/users/employees/'+str(sub_user.id)+'/', data={'username': 'test2', 'fist_name': 'test2', 'last_name': 'testian2'}, format='json')
+        self.assertEqual(r_users_change.status_code,
+                         403)
+
+    def test_can_saw_permission(self):
+        expected_statuses = [200, 403, 403]
+        for idx, user in enumerate([self.u_admin, self.u_employee, self.u_end]):
+            self.__jwt_auth(user)
+            sub_user = User.objects.create(
+                username='u_sub'+str(idx), password='mmmmm46456456456', admin=user)
+            r_permission_list = self.client.get(
+                '/api/users/UserPermissionList/'+str(sub_user.id), format='json')
+            self.assertEqual(r_permission_list.status_code,
+                             expected_statuses[idx])
+
+    def test_can_change_permission(self):
+        expected_statuses = [204, 403, 403]
+        for idx, user in enumerate([self.u_admin, self.u_employee, self.u_end]):
+            self.__jwt_auth(user)
+            sub_user = User.objects.create(
+                username='u_sub'+str(idx), password='mmmmm46456456456', admin=user)
+            r_permission_list = self.client.patch(
+                '/api/users/ChangeUserPermissionList/'+str(sub_user.id), data={'permission_id': [1, 2, 3, 4]}, format='json')
+            self.assertEqual(r_permission_list.status_code,
+                             expected_statuses[idx])
