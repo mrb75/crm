@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import *
 from users.models import User
+from django.db.models import Q
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -54,7 +55,7 @@ class BillFormSerializer(serializers.ModelSerializer):
         exclude = ['code', 'creator']
 
     def create(self, validated_data, creator):
-        # print(validated_data)
+        admin_info = self.context['request'].user
         validated_data = validated_data.copy()
         products_data = None
         if 'products' in validated_data:
@@ -90,9 +91,24 @@ class BillFormSerializer(serializers.ModelSerializer):
             c_products = products.count()
             c_sellers = sellers.count()
             c_numbers = len(numbers)
-            if c_numbers == c_products == c_sellers:
+            # check products and sellers belongs to admin
+            access_products = Product.objects.filter(Q(category__user=admin_info)
+                                                     | Q(category__parent__user=admin_info)
+                                                     | Q(category__parent__parent__user=admin_info)
+                                                     | Q(user=admin_info)
+                                                     ).values('id')
+            set_access_products = set(map(lambda x: x['id'], access_products))
+            access_sellers = User.objects.filter(
+                admin=admin_info, groups__name='employee_user').values('id')
+            set_access_sellers = set(map(lambda x: x['id'], access_sellers))
+            if (c_numbers == c_products == c_sellers) and (len(set(products_id)-set_access_products) == 0) and (len(set(sellers_id)-set_access_sellers) == 0):
                 for i in range(c_numbers):
                     bill.products.add(products[i], through_defaults={
                         'number': numbers[i], 'seller': sellers[i]})
 
         return bill
+
+    def validate_user(self, value):
+        if self.context['request'].user != value.admin:
+            raise serializers.ValidationError('user is not available')
+        return value

@@ -40,7 +40,8 @@ class BillViewSet(viewsets.ModelViewSet):
         return super().retrieve(request, pk=pk)
 
     def create(self, request):
-        bill_form_serializer = BillFormSerializer(data=request.data)
+        bill_form_serializer = BillFormSerializer(
+            data=request.data, context={'request': request})
         if bill_form_serializer.is_valid():
             bill = bill_form_serializer.create(request.data, request.user)
             return Response({'created_bill': BillSerializer(bill).data}, status=201)
