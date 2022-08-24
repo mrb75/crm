@@ -32,7 +32,7 @@ class RequestLogAdmin(admin.ModelAdmin):
 class CustomUserAdmin(UserAdmin):
     fieldsets = (
         (None, {
-            'fields': ('username', 'first_name', 'last_name', 'email', 'mobile', 'birth_date', 'company_name', 'admin')
+            'fields': ('username', 'first_name', 'last_name', 'email', 'mobile', 'birth_date', 'company_name', 'admin', 'groups')
         }),
     )
 
