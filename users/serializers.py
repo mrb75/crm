@@ -98,7 +98,7 @@ class PermissionSetSerializer(serializers.Serializer):
                                                  | Q(codename__contains='product')
                                                  | Q(codename__contains='bill')
                                                  | Q(codename__contains='user')
-                                                 | Q(codename__contains='userqueue')).values('id')
+                                                 | Q(codename__contains='turn')).values('id')
         access_ids = set(map(lambda x: x['id'], access_perms))
         if len(set(value)-access_ids):
             raise serializers.ValidationError(

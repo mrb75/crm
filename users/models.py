@@ -110,11 +110,11 @@ class NotificationType(models.Model):
         return datetime.datetime.strftime(self.date_created, '%Y/%m/%d %H:%M'), _(jdatetime.datetime.fromgregorian(date=self.date_created).strftime('%Y/%m/%d %H:%M'))
 
 
-class UserQueue(models.Model):
+class Turn(models.Model):
     coworker = models.ForeignKey(
-        User, models.CASCADE, related_name='userQueues')
+        User, models.CASCADE, related_name='turns')
     product = models.ForeignKey(
-        'bills.Product', models.CASCADE, related_name='userQueues')
+        'bills.Product', models.CASCADE, related_name='turns')
     date_visit = models.DateTimeField()
     description = models.TextField(max_length=2000, null=True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
