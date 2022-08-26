@@ -9,7 +9,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from .permissions import *
 from rest_framework.parsers import MultiPartParser
 from .models import UserImage, Ticket
-# from rest_framework.mixins import ListModelMixin, CreateModelMixin, DestroyModelMixin
+from django.db.models import Q
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -263,3 +263,45 @@ class ChangeUserPermissions(UpdateAPIView):
             return Response(status=204)
         else:
             return Response({'errors': permission_serializer.errors}, status=400)
+
+
+class TurnReadViewSet(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = [TokenAuthentication, JWTAuthentication]
+    serializer_class = TurnSerializer
+
+    def get_queryset(self):
+        return Turn.objects.filter(Q(user__admin=self.request.user) | Q(user__admin=self.request.user.admin))
+
+    def get_permissions(self):
+        if self.action == 'list':
+            permission_classes = [IsAuthenticated, TurnViewPermission]
+        elif self.action == 'retrieve':
+            permission_classes = [IsAuthenticated, TurnRetrievePermission]
+        else:
+            permission_classes = [IsAuthenticated]
+
+        return [permission() for permission in permission_classes]
+
+
+class TurnViewSet(viewsets.ModelViewSet):
+    authentication_classes = [TokenAuthentication, JWTAuthentication]
+    serializer_class = TurnFormSerializer
+
+    def get_queryset(self):
+        return Turn.objects.filter(Q(user__admin=self.request.user) | Q(user__admin=self.request.user.admin))
+
+    def get_permissions(self):
+        if self.action == 'list':
+            permission_classes = [IsAuthenticated, TurnViewPermission]
+        elif self.action == 'retrieve':
+            permission_classes = [IsAuthenticated, TurnRetrievePermission]
+        elif self.action == 'create':
+            permission_classes = [IsAuthenticated, TurnAddPermission]
+        elif self.action in ['update', 'partial_update']:
+            permission_classes = [IsAuthenticated, TurnChangePermission]
+        elif self.action in ['destroy']:
+            permission_classes = [IsAuthenticated, TurnRemovePermission]
+        else:
+            permission_classes = [IsAuthenticated]
+
+        return [permission() for permission in permission_classes]

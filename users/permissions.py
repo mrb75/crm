@@ -109,3 +109,37 @@ class TicketRemovePermission(BasePermission):
 class IsAdminPermission(BasePermission):
     def has_permission(self, request, view):
         return request.user.groups.filter(name="admin_user").exists()
+
+
+class TurnViewPermission(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.has_perm('users.view_turn')
+
+
+class TurnRetrievePermission(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.has_perm('users.view_turn')
+
+    def has_object_permission(self, request, view, obj):
+        return (request.user == obj.user.admin) or (request.user.admin == obj.user.admin)
+
+
+class TurnAddPermission(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.has_perm('users.add_turn')
+
+
+class TurnChangePermission(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.has_perm('users.change_turn')
+
+    def has_object_permission(self, request, view, obj):
+        return (request.user == obj.user.admin) or (request.user.admin == obj.user.admin)
+
+
+class TurnRemovePermission(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.has_perm('users.delete_turn')
+
+    def has_object_permission(self, request, view, obj):
+        return (request.user == obj.user.admin) or (request.user.admin == obj.user.admin)

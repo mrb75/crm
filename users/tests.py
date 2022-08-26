@@ -1,8 +1,9 @@
 from django.test import TestCase
 from rest_framework.test import APITestCase
-from .models import User, UserImage, Ticket
+from .models import User, UserImage, Ticket, Turn
 from django.contrib.auth.models import Group, Permission
 from rest_framework_simplejwt.tokens import RefreshToken
+import datetime
 
 
 class UrlTest(APITestCase):
@@ -13,7 +14,7 @@ class UrlTest(APITestCase):
             'view_userimage', 'add_userimage', 'change_userimage', 'delete_userimage',
             'view_notification', 'add_notification', 'change_notification', 'delete_notification',
             'view_notificationtype', 'add_notificationtype', 'change_notificationtype', 'delete_notificationtype',
-            'view_userqueue', 'add_userqueue', 'change_userqueue', 'delete_userqueue',
+            'view_turn', 'add_turn', 'change_turn', 'delete_turn',
             'view_ticket', 'add_ticket', 'change_ticket', 'delete_ticket',
         ])
         employee_permissions = Permission.objects.filter(
@@ -242,7 +243,136 @@ class UrlTest(APITestCase):
             self.__jwt_auth(user)
             sub_user = User.objects.create(
                 username='u_sub'+str(idx), password='mmmmm46456456456', admin=user)
-            r_permission_list = self.client.patch(
-                '/api/users/ChangeUserPermissionList/'+str(sub_user.id), data={'permission_id': [1, 2, 3, 4]}, format='json')
-            self.assertEqual(r_permission_list.status_code,
+            r_permission_change = self.client.patch(
+                '/api/users/ChangeUserPermissionList/'+str(sub_user.id), data={'permission_id': [61, 62, 63, 64]}, format='json')
+            self.assertEqual(r_permission_change.status_code,
                              expected_statuses[idx])
+
+    def test_admin_can_read_turns(self):
+        self.__jwt_auth(self.u_admin)
+        r_turns_list = self.client.get(
+            '/api/users/readTurns/', format='json')
+        self.assertEqual(r_turns_list.status_code, 200)
+
+    def test_employee_can_read_turns(self):
+        self.__jwt_auth(self.u_employee)
+        permissions = Permission.objects.filter(codename__in=[
+            'view_turn', 'add_turn', 'change_turn', 'delete_turn',
+        ])
+        self.u_employee.user_permissions.set(permissions)
+        r_turns_list = self.client.get(
+            '/api/users/readTurns/', format='json')
+        self.assertEqual(r_turns_list.status_code, 200)
+
+    def test_employee_cant_read_turns(self):
+        self.__jwt_auth(self.u_employee)
+        r_turns_list = self.client.get(
+            '/api/users/readTurns/', format='json')
+        self.assertEqual(r_turns_list.status_code, 403)
+
+    def test_admin_can_read_single_turn(self):
+        self.__jwt_auth(self.u_admin)
+        turn = Turn.objects.create(
+            date_visit=datetime.datetime.now().replace(tzinfo=datetime.timezone.utc), description='test', user=self.u_end)
+        r_turns_list = self.client.get(
+            '/api/users/readTurns/'+str(turn.id)+'/', format='json')
+        self.assertEqual(r_turns_list.status_code, 200)
+
+    def test_employee_can_read_single_turn(self):
+        self.__jwt_auth(self.u_employee)
+        turn = Turn.objects.create(
+            date_visit=datetime.datetime.now().replace(tzinfo=datetime.timezone.utc), description='test', user=self.u_end)
+        permissions = Permission.objects.filter(codename__in=[
+            'view_turn', 'add_turn', 'change_turn', 'delete_turn',
+        ])
+        self.u_employee.user_permissions.set(permissions)
+        r_turns_list = self.client.get(
+            '/api/users/readTurns/'+str(turn.id)+'/', format='json')
+        self.assertEqual(r_turns_list.status_code, 200)
+
+    def test_employee_cant_read_single_turn(self):
+        self.__jwt_auth(self.u_employee)
+        turn = Turn.objects.create(
+            date_visit=datetime.datetime.now().replace(tzinfo=datetime.timezone.utc), description='test', user=self.u_end)
+        r_turns_list = self.client.get(
+            '/api/users/readTurns/'+str(turn.id)+'/', format='json')
+        self.assertEqual(r_turns_list.status_code, 403)
+
+    def test_admin_can_add_turn(self):
+        self.__jwt_auth(self.u_admin)
+
+        r_turns_add = self.client.post(
+            '/api/users/turns/', data={'date_visit': '1401-01-20 14:25', 'user': self.u_end.id}, format='json')
+        self.assertEqual(r_turns_add.status_code, 201)
+
+    def test_employee_can_add_turn(self):
+        self.__jwt_auth(self.u_employee)
+        permissions = Permission.objects.filter(codename__in=[
+            'view_turn', 'add_turn', 'change_turn', 'delete_turn',
+        ])
+        self.u_employee.user_permissions.set(permissions)
+        r_turns_add = self.client.post(
+            '/api/users/turns/', data={'date_visit': '1401-01-20 14:25', 'user': self.u_end.id}, format='json')
+        self.assertEqual(r_turns_add.status_code, 201)
+
+    def test_employee_cant_add_turn(self):
+        self.__jwt_auth(self.u_employee)
+        r_turns_add = self.client.post(
+            '/api/users/turns/', data={'date_visit': '1401-01-20 14:25', 'user': self.u_end.id}, format='json')
+        self.assertEqual(r_turns_add.status_code, 403)
+
+    def test_admin_can_change_turn(self):
+        self.__jwt_auth(self.u_admin)
+        turn = Turn.objects.create(
+            date_visit=datetime.datetime.now().replace(tzinfo=datetime.timezone.utc), description='test', user=self.u_end)
+        r_turns_change = self.client.patch(
+            '/api/users/turns/'+str(turn.id)+'/', data={'date_visit': '1401-01-20 14:25', 'user': self.u_end.id}, format='json')
+        self.assertEqual(r_turns_change.status_code, 200)
+
+    def test_employee_can_change_turn(self):
+        self.__jwt_auth(self.u_employee)
+        turn = Turn.objects.create(
+            date_visit=datetime.datetime.now().replace(tzinfo=datetime.timezone.utc), description='test', user=self.u_end)
+        permissions = Permission.objects.filter(codename__in=[
+            'view_turn', 'add_turn', 'change_turn', 'delete_turn',
+        ])
+        self.u_employee.user_permissions.set(permissions)
+        r_turns_change = self.client.patch(
+            '/api/users/turns/'+str(turn.id)+'/', data={'date_visit': '1401-01-20 15:25'}, format='json')
+        self.assertEqual(r_turns_change.status_code, 200)
+
+    def test_employee_cant_change_turn(self):
+        self.__jwt_auth(self.u_employee)
+        turn = Turn.objects.create(
+            date_visit=datetime.datetime.now().replace(tzinfo=datetime.timezone.utc), description='test', user=self.u_end)
+        r_turns_change = self.client.patch(
+            '/api/users/turns/'+str(turn.id)+'/', data={'date_visit': '1401-01-20 15:25'}, format='json')
+        self.assertEqual(r_turns_change.status_code, 403)
+
+    def test_admin_can_remove_turn(self):
+        self.__jwt_auth(self.u_admin)
+        turn = Turn.objects.create(
+            date_visit=datetime.datetime.now().replace(tzinfo=datetime.timezone.utc), description='test', user=self.u_end)
+        r_turns_remove = self.client.delete(
+            '/api/users/turns/'+str(turn.id)+'/', format='json')
+        self.assertEqual(r_turns_remove.status_code, 204)
+
+    def test_employee_can_remove_turn(self):
+        self.__jwt_auth(self.u_employee)
+        turn = Turn.objects.create(
+            date_visit=datetime.datetime.now().replace(tzinfo=datetime.timezone.utc), description='test', user=self.u_end)
+        permissions = Permission.objects.filter(codename__in=[
+            'view_turn', 'add_turn', 'change_turn', 'delete_turn',
+        ])
+        self.u_employee.user_permissions.set(permissions)
+        r_turns_remove = self.client.delete(
+            '/api/users/turns/'+str(turn.id)+'/', format='json')
+        self.assertEqual(r_turns_remove.status_code, 204)
+
+    def test_employee_cant_remove_turn(self):
+        self.__jwt_auth(self.u_employee)
+        turn = Turn.objects.create(
+            date_visit=datetime.datetime.now().replace(tzinfo=datetime.timezone.utc), description='test', user=self.u_end)
+        r_turns_remove = self.client.delete(
+            '/api/users/turns/'+str(turn.id)+'/', format='json')
+        self.assertEqual(r_turns_remove.status_code, 403)

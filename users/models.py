@@ -112,9 +112,10 @@ class NotificationType(models.Model):
 
 class Turn(models.Model):
     coworker = models.ForeignKey(
-        User, models.CASCADE, related_name='turns')
+        User, models.CASCADE, related_name='createdTurns', null=True, blank=True)
     product = models.ForeignKey(
-        'bills.Product', models.CASCADE, related_name='turns')
+        'bills.Product', models.CASCADE, related_name='turns', null=True, blank=True)
+    user = models.ForeignKey(User, models.CASCADE, related_name='turns')
     date_visit = models.DateTimeField()
     description = models.TextField(max_length=2000, null=True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True)

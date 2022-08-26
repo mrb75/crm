@@ -104,3 +104,24 @@ class PermissionSetSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 'you dont have access to some of permissions')
         return value
+
+
+class TurnSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    coworker = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Turn
+        fields = '__all__'
+
+
+class TurnFormSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Turn
+        fields = '__all__'
+
+    def validate_user(self, value):
+        if (value.admin == self.context['request'].user) or (value.admin == self.context['request'].user.admin):
+            return value
+        else:
+            raise serializers.ValidationError('user is not belongs to you')
