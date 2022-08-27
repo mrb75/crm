@@ -1,2 +1,5 @@
 files/
 .env
+data/
+Dockerfile
+docker-compose.yml
