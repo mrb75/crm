@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser
 import datetime
 import jdatetime
 from django.utils.translation import gettext as _
+from django.core.validators import MaxValueValidator
 
 
 class Country(models.Model):
@@ -43,6 +44,8 @@ class User(AbstractUser):
     remained_sms = models.IntegerField(default=0)
     admin = models.ForeignKey('self', models.CASCADE,
                               null=True, blank=True, related_name='subUsers')
+    commission = models.PositiveIntegerField(
+        validators=[MaxValueValidator(100)], null=True, blank=True)
     date_modified = models.DateTimeField(auto_now=True)
 
     class Meta:
