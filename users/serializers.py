@@ -36,7 +36,7 @@ class UserFormSerializer(serializers.Serializer):
         # for idx in validated_data.keys():
         #     if idx in ['email', 'first_name', 'last_name', 'gender', 'mobile', 'national_code']:
         #         setattr(user, idx, validated_data[idx])
-        user.admin = validated_data['admin']
+        user.admin = self.context['request'].user
         user.set_password(''.join(random.sample(
             list('abcdefghigklmnopqrstuvwxyz'), 10)))
         user.save()

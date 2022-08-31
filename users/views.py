@@ -37,12 +37,13 @@ class UserViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def create(self, request):
-        user_serializer = UserFormSerializer(data=request.data)
+        user_serializer = UserFormSerializer(
+            data=request.data, context={'request': request})
         if user_serializer.is_valid():
-            request_data = dict(**(request.data))
-            # print(request_data, request.data)
-            request_data['admin'] = request.user
-            user = user_serializer.create(request_data)
+            # request_data = dict(**(request.data))
+            # # print(request_data, request.data)
+            # request_data['admin'] = request.user
+            user = user_serializer.create(request.data)
             return Response({'response': True, 'created_user': UserSerializer(user).data})
         else:
             return Response({'response': False, 'errors': user_serializer.errors})
@@ -84,12 +85,13 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         return self.request.user.subUsers.filter(group_name='employee_user')
 
     def create(self, request):
-        user_serializer = UserFormSerializer(data=request.data)
+        user_serializer = UserFormSerializer(
+            data=request.data, context={'request': request})
         if user_serializer.is_valid():
-            request_data = dict(**(request.data))
-            # print(request_data, request.data)
-            request_data['admin'] = request.user
-            user = user_serializer.create(request_data, group='employee_user')
+            # request_data = dict(**(request.data))
+            # # print(request_data, request.data)
+            # request_data['admin'] = request.user
+            user = user_serializer.create(request.data, group='employee_user')
             return Response({'response': True, 'created_user': UserSerializer(user).data}, status=201)
         else:
             return Response({'response': False, 'errors': user_serializer.errors}, status=400)
@@ -104,6 +106,28 @@ class EmployeeViewSet(viewsets.ModelViewSet):
             return Response({'response': True, 'updated_user': UserSerializer(user).data})
         else:
             return Response({'response': False, 'errors': user_serializer.errors}, status=400)
+
+
+class CoworkerViewSet(viewsets.ModelViewSet):
+    authentication_classes = [TokenAuthentication, JWTAuthentication]
+    permission_classes = [IsAuthenticated, IsAdminPermission]
+    serializer_class = UserSerializer
+
+    def get_queryset(self):
+        return self.request.user.subUsers.filter(groups__name='coworker_user')
+
+    def create(self, request):
+        user_serializer = UserFormSerializer(
+            data=request.data, context={'request': request})
+        if user_serializer.is_valid():
+            coworker = user_serializer.create(request.data)
+            coworker.groups.set([Group.objects.get(name='coworker_user')])
+            return Response(self.serializer_class(coworker).data, 201)
+        else:
+            return Response(user_serializer.errors, 400)
+
+    def destroy(self, request):
+        return Response({}, 404)
 
 
 class EditProfile(UpdateAPIView):

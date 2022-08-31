@@ -23,6 +23,7 @@ class UrlTest(APITestCase):
             codename__in=['view_userimage', 'add_userimage', 'change_userimage', 'delete_userimage', 'view_ticket', 'add_ticket', 'change_ticket', 'delete_ticket'])
         g_admin = Group.objects.create(name='admin_user')
         g_employee = Group.objects.create(name='employee_user')
+        g_coworker = Group.objects.create(name='coworker_user')
         g_end = Group.objects.create(name='end_user')
         g_admin.permissions.set(admin_permissions)
         g_employee.permissions.set(employee_permissions)
@@ -33,6 +34,9 @@ class UrlTest(APITestCase):
         self.u_employee = User.objects.create(
             username='u_employee', password='mmmmm46456456456', admin=self.u_admin)
         self.u_employee.groups.add(Group.objects.get(name='employee_user'))
+        self.u_coworker = User.objects.create(
+            username='u_coworker', password='mmmmm46456456456', admin=self.u_admin)
+        self.u_coworker.groups.set([Group.objects.get(name='employee_user')])
         self.u_end = User.objects.create(
             username='u_end', password='mmmmm46456456456', admin=self.u_admin)
         self.u_end.groups.add(Group.objects.get(name='end_user'))
@@ -376,3 +380,38 @@ class UrlTest(APITestCase):
         r_turns_remove = self.client.delete(
             '/api/users/turns/'+str(turn.id)+'/', format='json')
         self.assertEqual(r_turns_remove.status_code, 403)
+
+    def test_admin_can_read_coworkers(self):
+        self.__jwt_auth(self.u_admin)
+        r_coworkers_read = self.client.get(
+            '/api/users/coworkers/', format='json')
+        self.assertEqual(r_coworkers_read.status_code, 200)
+
+    def test_admin_can_create_coworkers(self):
+        self.__jwt_auth(self.u_admin)
+        r_coworkers_read = self.client.post(
+            '/api/users/coworkers/', data={
+                'username': 'test_coworker',
+                'commission': 18,
+                'first_name': 'test',
+                'last_name': 'coworker',
+                'email': 'test@test.test',
+                'gender': 'Female',
+            }, format='json')
+        self.assertEqual(r_coworkers_read.status_code, 201)
+
+    def test_admin_can_update_coworkers(self):
+        self.__jwt_auth(self.u_admin)
+        user = User.objects.create(
+            username='test_coworker2', commission=25, gender='Female', admin=self.u_admin)
+        user.groups.set([Group.objects.get(name='coworker_user')])
+        r_coworkers_read = self.client.patch(
+            '/api/users/coworkers/'+str(user.id)+"/", data={
+                'username': 'test_coworker',
+                'commission': 18,
+                'first_name': 'test',
+                'last_name': 'coworker',
+                'email': 'test@test.test',
+                'gender': 'Male',
+            }, format='json')
+        self.assertEqual(r_coworkers_read.status_code, 200)
