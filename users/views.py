@@ -110,11 +110,23 @@ class EmployeeViewSet(viewsets.ModelViewSet):
 
 class CoworkerViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication, JWTAuthentication]
-    permission_classes = [IsAuthenticated, IsAdminPermission]
     serializer_class = UserSerializer
 
     def get_queryset(self):
         return self.request.user.subUsers.filter(groups__name='coworker_user')
+
+    def get_permissions(self):
+
+        if self.action == 'retrieve':
+            permission_classes = [IsAuthenticated, SubUserRetrievePermission]
+        elif self.action == 'partial_update':
+            permission_classes = [IsAuthenticated, SubUsersChangePermission]
+        elif self.action in ['destroy']:
+            permission_classes = [IsAuthenticated, SubUsersDeletePermission]
+        else:
+            permission_classes = [IsAuthenticated]
+        permission_classes.append(IsAdminPermission)
+        return [permission() for permission in permission_classes]
 
     def create(self, request):
         user_serializer = UserFormSerializer(
