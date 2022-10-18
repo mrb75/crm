@@ -165,13 +165,13 @@ class UrlTest(APITestCase):
                                                                       }, format='json')
         self.assertEqual(r_add_tickets.status_code, 201)
 
-    def test_can_saw_own_tickets(self):
+    def test_can_see_own_tickets(self):
         for user in [self.u_admin, self.u_employee, self.u_end]:
             self.__jwt_auth(user)
             r_tickets = self.client.get('/api/users/tickets/', format='json')
             self.assertEqual(r_tickets.status_code, 200)
 
-    def test_can_saw_one_ticket_of_own(self):
+    def test_can_see_one_ticket_of_own(self):
         other_user = User.objects.create(
             username='u_other_user', password='mmmmm46456456456')
         for user in [self.u_admin, self.u_employee, self.u_end]:
@@ -187,7 +187,7 @@ class UrlTest(APITestCase):
                 subject='own_ticket', user=other_user, text='its my own', message_type='Support', status='Waiting')
             r_ticket_other = self.client.get(
                 '/api/users/tickets/'+str(other_user_ticket.id)+'/', format='json')
-            self.assertEqual(r_ticket_other.status_code, 403)
+            self.assertEqual(r_ticket_other.status_code, 404)
 
     def test_can_create_employee(self):
         expected_statuses = [201, 403, 403]
@@ -230,7 +230,7 @@ class UrlTest(APITestCase):
         self.assertEqual(r_users_change.status_code,
                          403)
 
-    def test_can_saw_permission(self):
+    def test_can_see_permission(self):
         expected_statuses = [200, 403, 403]
         for idx, user in enumerate([self.u_admin, self.u_employee, self.u_end]):
             self.__jwt_auth(user)
@@ -415,3 +415,5 @@ class UrlTest(APITestCase):
                 'gender': 'Male',
             }, format='json')
         self.assertEqual(r_coworkers_read.status_code, 200)
+
+    # def test_

@@ -8,8 +8,9 @@ router.register(r'employees', EmployeeViewSet, basename='employee')
 router.register(r'coworkers', CoworkerViewSet, basename='coworker')
 router.register(r'usersImage', SubUserImageViewSet, basename='userImage')
 router.register(r'tickets', TicketViewSet, basename='ticket')
+router.register(r'adminTickets', AdminTicketViewSet, basename='adminTicket')
 router.register(r'turns', TurnViewSet, basename='turn')
-router.register(r'readTurns', TurnReadViewSet, basename='turn')
+router.register(r'readTurns', TurnReadViewSet, basename='readTurn')
 
 urlpatterns = [
     path('EditProfile', EditProfile.as_view()),

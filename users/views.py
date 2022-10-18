@@ -10,11 +10,13 @@ from .permissions import *
 from rest_framework.parsers import MultiPartParser
 from .models import UserImage, Ticket
 from django.db.models import Q
+from .filters import *
 
 
 class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     authentication_classes = [TokenAuthentication, JWTAuthentication]
+    filterset_class = UserFilter
 
     def get_queryset(self):
         return self.request.user.subUsers.all()
@@ -226,29 +228,13 @@ class TicketViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return self.request.user.tickets.all()
 
-    def get_permissions(self):
-        if self.action == 'list':
-            permission_classes = [IsAuthenticated, TicketViewPermission]
-        elif self.action == 'retrieve':
-            permission_classes = [IsAuthenticated, TicketRetrievePermission]
-        elif self.action == 'create':
-            permission_classes = [IsAuthenticated, TicketAddPermission]
-        elif self.action in ['update', 'partial_update']:
-            permission_classes = [IsAuthenticated, TicketChangePermission]
-        elif self.action in ['destroy']:
-            permission_classes = [IsAuthenticated, TicketRemovePermission]
-        else:
-            permission_classes = [IsAuthenticated]
-
-        return [permission() for permission in permission_classes]
-
     def list(self, request):
         return Response({'result': True, 'data': self.queryset})
 
-    def retrieve(self, request, pk=0):
-        ticket = Ticket.objects.get(pk=pk)
-        self.check_object_permissions(request, ticket)
-        return Response({'result': True, 'data': TicketSerializer(ticket).data})
+    # def retrieve(self, request, pk=0):
+    #     ticket = Ticket.objects.get(pk=pk)
+    #     self.check_object_permissions(request, ticket)
+    #     return Response({'result': True, 'data': TicketSerializer(ticket).data})
 
     def create(self, request):
         ticket_serializer = TicketFormSerializer(data=request.data)
@@ -267,6 +253,30 @@ class TicketViewSet(viewsets.ModelViewSet):
     def destroy(self, request, pk=0):
         self.check_object_permissions(request, Ticket.objects.get(pk=pk))
         super().destroy(request, pk)
+
+
+class AdminTicketViewSet(viewsets.ModelViewSet):
+    serializer_class = TicketSerializer
+    authentication_classes = [TokenAuthentication, JWTAuthentication]
+
+    def get_queryset(self):
+        return Ticket.objects.filter(Q(user__admin=self.request.user) | Q(user__admin=self.request.user.admin))
+
+    def get_permissions(self):
+        if self.action == 'list':
+            permission_classes = [IsAuthenticated, TicketViewPermission]
+        elif self.action == 'retrieve':
+            permission_classes = [IsAuthenticated, TicketRetrievePermission]
+        elif self.action == 'create':
+            permission_classes = [IsAuthenticated, TicketAddPermission]
+        elif self.action in ['update', 'partial_update']:
+            permission_classes = [IsAuthenticated, TicketChangePermission]
+        elif self.action in ['destroy']:
+            permission_classes = [IsAuthenticated, TicketRemovePermission]
+        else:
+            permission_classes = [IsAuthenticated]
+
+        return [permission() for permission in permission_classes]
 
 
 class UserPermissions(ListAPIView):

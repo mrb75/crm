@@ -109,6 +109,6 @@ class BillFormSerializer(serializers.ModelSerializer):
         return bill
 
     def validate_user(self, value):
-        if self.context['request'].user != value.admin:
+        if self.context['request'].user != value.admin and self.context['request'].user.admin != value.admin:
             raise serializers.ValidationError('user is not available')
         return value

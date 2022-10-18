@@ -81,8 +81,6 @@ class UserImage(models.Model):
 class Notification(models.Model):
     user = models.ForeignKey(User, models.CASCADE,
                              related_name='notifications')
-    writer = models.ForeignKey(
-        User, models.CASCADE, related_name='sentNotifications')
     is_news = models.BooleanField(default=False)
     text = models.TextField(max_length=1000)
     date_created = models.DateTimeField(auto_now_add=True)
@@ -180,8 +178,8 @@ class RequestLog(models.Model):
         User, on_delete=models.CASCADE, related_name='requestLogs', null=True)
     ip_address = models.GenericIPAddressField()
     referer = models.CharField(max_length=255, null=True)
-    user_agent = models.CharField(max_length=100, null=True)
-    url = models.CharField(max_length=100, null=True)
+    user_agent = models.CharField(max_length=255, null=True)
+    url = models.CharField(max_length=255, null=True)
     method = models.CharField(max_length=10)
     date_created = models.DateTimeField(auto_now_add=True)
 

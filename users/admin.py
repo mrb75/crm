@@ -16,7 +16,7 @@ class CityAdmin(admin.ModelAdmin):
 
 
 class NotificationAdmin(admin.ModelAdmin):
-    list_display = ('text', 'user', 'writer', 'create_date_time',
+    list_display = ('text', 'user', 'create_date_time',
                     'modify_date_time', 'is_news')
 
 

@@ -96,11 +96,12 @@ class UrlTest(APITestCase):
     def test_employee_can_add_bill(self):
         self.__jwt_auth(self.u_employee)
         other_user = User.objects.create(
-            username='u_other_user', password='Mrb76420', admin=self.u_employee)
+            username='u_other_user', password='Mrb76420', admin=self.u_admin)
         self.u_employee.user_permissions.set(Permission.objects.filter(
             codename__in=['view_bill', 'add_bill', 'change_bill', 'delete_bill']))
         r_bill_add = self.client.post(
             '/api/bills/bills/', data={'cash_payment': 1000, 'user': self.u_end.id, 'products': [{'seller': self.u_employee.id, 'product': self.test_product.id, 'number': 1}]}, format='json')
+        # print(r_bill_add.data)
         self.assertEqual(r_bill_add.status_code, 201)
 
     def test_admin_can_saw_category_list(self):

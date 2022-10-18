@@ -64,7 +64,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
 
     def get_queryset(self):
-        return Category.objects.filter(user=self.request.user)
+        return Category.objects.filter(Q(user=self.request.user)|Q(user=self.request.user.admin))
 
     def get_permissions(self):
         if self.action == 'list':
