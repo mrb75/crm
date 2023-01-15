@@ -9,6 +9,7 @@ envs:
 
 services:
   - postgres:
+      tag: 14.2
       volumes:
         - name: postgres_vol
           mount: /var/lib/postgres/
