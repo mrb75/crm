@@ -10,7 +10,7 @@ envs:
 services:
   - postgres:
       envs:
-        - POSTGRES_ROOT_PASSWORD: 
+        - POSTGRES_ROOT_PASSWORD: random_1
           type: password
         - POSTGRES_DATABASE: crm_db
         - POSTGRES_USER: postgres
