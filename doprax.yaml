@@ -10,7 +10,7 @@ envs:
 services:
   - postgres:
       envs:
-        - POSTGRES_ROOT_PASSWORD: @Amghjsrtipo_8430
+        - POSTGRES_ROOT_PASSWORD: 
           type: password
         - POSTGRES_DATABASE: crm_db
         - POSTGRES_USER: postgres
