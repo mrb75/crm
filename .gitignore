@@ -1,9 +1,6 @@
 files/
 .env
 data/
-Dockerfile
-docker-compose.yml
-docker-entrypoint.sh
 celerybeat-schedule
 *.log
 *.pot
