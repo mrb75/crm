@@ -1,55 +1,18 @@
-version: "3.10"
+volumes:
+  - name:  static
+    mount: /app_data/static/
+envs:
+  - DB_PASS: @Amghjsrtipo_8430
+    type: password
+  - DB_NAME: crm_db
+  - DB_HOST: postgres
 
 services:
-  db:
-    image: postgres
-    volumes:
-      - ./data/db:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_DB=crm_db
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=@Amghjsrtipo_8430
-  # Redis
-  redis:
-    image: redis
-    hostname: redis
-
-  # RabbitMQ
-  rabbit:
-    hostname: rabbit
-    image: rabbitmq
-    environment:
-      - RABBITMQ_DEFAULT_USER=admin
-      - RABBITMQ_DEFAULT_PASS=M_1376
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-  web:
-    build: .
-    command: ./docker-entrypoint.sh
-    volumes:
-      - .:/crm
-    ports:
-      - "8000:8000"
-    environment:
-      - POSTGRES_NAME=crm_db
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=@Amghjsrtipo_8430
-    depends_on:
-      - db
-  # Celery worker
-  worker:
-    build: .
-    command: celery -A crm worker -l info
-    volumes:
-      - .:/crm
-    depends_on:
-      - rabbit
-  # Celery worker
-  beat:
-    build: .
-    command: celery -A crm beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
-    volumes:
-      - .:/crm
-    depends_on:
-      - worker
+  - postgres:
+      envs:
+        - POSTGRES_ROOT_PASSWORD: @Amghjsrtipo_8430
+          type: password
+        - POSTGRES_DATABASE: crm_db
+        - POSTGRES_USER: postgres
+        - POSTGRES_PASSWORD: @Amghjsrtipo_8430
+          type: password
