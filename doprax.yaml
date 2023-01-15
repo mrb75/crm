@@ -9,8 +9,11 @@ envs:
 
 services:
   - postgres:
+      volumes:
+        - name: postgres_vol
+          mount: /var/lib/postgres/
       envs:
-        - POSTGRES_ROOT_PASSWORD: random_1
+        - POSTGRES_ROOT_PASSWORD: @Amghjsrtipo_8430
           type: password
         - POSTGRES_DATABASE: crm_db
         - POSTGRES_USER: postgres
