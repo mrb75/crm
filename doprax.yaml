@@ -8,11 +8,11 @@ envs:
   - DB_HOST: postgres
 
 services:
-  - postgres:
-      tag: 14.2
+  - postgresql:
+      tag: 14.5
       volumes:
-        - name: postgres_vol
-          mount: /var/lib/postgres/
+        - name: postgresql_vol
+          mount: /var/lib/postgresql/
       envs:
         - POSTGRES_ROOT_PASSWORD: @Amghjsrtipo_8430
           type: password
