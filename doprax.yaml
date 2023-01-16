@@ -5,7 +5,7 @@ envs:
   - DB_PASS: @Amghjsrtipo_8430
     type: password
   - DB_NAME: crm_db
-  - DB_HOST: postgres
+  - DB_HOST: localhost
 
 services:
   - postgresql:
